@@ -60,6 +60,7 @@ class _FakeHtmlResp:
 
 def test_search_success(monkeypatch):
     monkeypatch.setenv("QIANFAN_WEBSEARCH_API_KEY", "bsk-test")
+    monkeypatch.setenv("QIANFAN_WEBSEARCH_API_BASE", "https://test-gw/v2/ai_search/web_search")
     monkeypatch.setattr(ws.urllib.request, "urlopen",
                         lambda req, timeout=20: _FakeResp(_ok_payload(["A", "B", "C"])))
     results = ws.search("q", top=2)
@@ -70,6 +71,7 @@ def test_search_success(monkeypatch):
 
 def test_search_images_success(monkeypatch):
     monkeypatch.setenv("QIANFAN_WEBSEARCH_API_KEY", "bsk-test")
+    monkeypatch.setenv("QIANFAN_WEBSEARCH_API_BASE", "https://test-gw/v2/ai_search/web_search")
     monkeypatch.setattr(ws.urllib.request, "urlopen",
                         lambda req, timeout=20: _FakeResp(_ok_image_payload(["A", "B"])))
     results = ws.search_images("q", top=2)
@@ -82,6 +84,7 @@ def test_search_images_success(monkeypatch):
 def test_search_images_missing_image_field(monkeypatch):
     # 网关某条结果没有 image 子对象时不应崩，字段降级为空串
     monkeypatch.setenv("QIANFAN_WEBSEARCH_API_KEY", "bsk-test")
+    monkeypatch.setenv("QIANFAN_WEBSEARCH_API_BASE", "https://test-gw/v2/ai_search/web_search")
     payload = {"request_id": "x", "references": [{"title": "no-img", "url": "u"}]}
     monkeypatch.setattr(ws.urllib.request, "urlopen",
                         lambda req, timeout=20: _FakeResp(payload))
@@ -157,6 +160,7 @@ def test_missing_key_raises(monkeypatch):
 def test_network_failure_propagates_not_stale(monkeypatch):
     # 铁律：搜不到就抛错，绝不返回空结果/旧数据
     monkeypatch.setenv("QIANFAN_WEBSEARCH_API_KEY", "bsk-test")
+    monkeypatch.setenv("QIANFAN_WEBSEARCH_API_BASE", "https://test-gw/v2/ai_search/web_search")
 
     def _boom(req, timeout=20):
         raise urllib.error.URLError("connection refused")
@@ -171,6 +175,7 @@ def test_network_failure_propagates_not_stale(monkeypatch):
 
 def test_bad_payload_raises(monkeypatch):
     monkeypatch.setenv("QIANFAN_WEBSEARCH_API_KEY", "bsk-test")
+    monkeypatch.setenv("QIANFAN_WEBSEARCH_API_BASE", "https://test-gw/v2/ai_search/web_search")
     monkeypatch.setattr(ws.urllib.request, "urlopen",
                         lambda req, timeout=20: _FakeResp({"request_id": "x"}))
     try:
@@ -182,6 +187,7 @@ def test_bad_payload_raises(monkeypatch):
 
 def test_main_network_failure_returns_1(monkeypatch, capsys):
     monkeypatch.setenv("QIANFAN_WEBSEARCH_API_KEY", "bsk-test")
+    monkeypatch.setenv("QIANFAN_WEBSEARCH_API_BASE", "https://test-gw/v2/ai_search/web_search")
 
     def _boom(req, timeout=20):
         raise urllib.error.URLError("down")

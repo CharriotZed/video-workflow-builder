@@ -18,8 +18,9 @@ API key 读取顺序:
     2. skill 目录下 .env 里的 QIANFAN_WEBSEARCH_API_KEY=xxx
     未配置则报错退出——不静默降级、不返回空结果。
 
-网关地址同理可覆盖:
-    环境变量 QIANFAN_WEBSEARCH_API_BASE 或 .env 里的同名项，默认指向预发网关。
+网关地址（必填）:
+    环境变量 QIANFAN_WEBSEARCH_API_BASE 或 .env 里的同名项，指向你自己的搜索网关。
+    未配置则报错退出——不内置任何默认网关地址。
 
 铁律：搜不到就报错，绝不返回缓存/编造的结果。联网研究的价值全在"实时"二字，
 拿旧数据或空结果冒充搜索结果，比明说搜不到更有害。
@@ -32,7 +33,6 @@ import sys
 import urllib.request
 import urllib.error
 
-DEFAULT_API_BASE = "http://pre-qianfan.bilibili.co/v2/ai_search/web_search"
 DEFAULT_SEARCH_SOURCE = "baidu_search_v2"
 DEFAULT_TOP_K = 10
 DEFAULT_TIMEOUT = 20
@@ -65,7 +65,12 @@ def _load_api_key():
 
 def _load_api_base():
     base = _load_env_value("QIANFAN_WEBSEARCH_API_BASE")
-    return (base or DEFAULT_API_BASE).rstrip("/")
+    if not base:
+        raise RuntimeError(
+            "未配置 QIANFAN_WEBSEARCH_API_BASE。请把搜索网关地址写进环境变量，"
+            "或 skill 目录下被 .gitignore 排除的 .env 文件："
+            "QIANFAN_WEBSEARCH_API_BASE=https://你的搜索网关/v2/ai_search/web_search")
+    return base.rstrip("/")
 
 
 def _fetch_references(query, res_type, top, source, timeout, api_key, api_base):

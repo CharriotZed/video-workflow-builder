@@ -15,9 +15,9 @@
     python3 generate_cover.py --platform douyin   --prompt "..."        --output cover_douyin.png
     python3 generate_cover.py --platform bilibili --prompt "..." --reference-image 真人照.jpg --output cover.png
 
-API key 读取顺序:
-    1. 环境变量 LLM_GATEWAY_API_KEY（优先，方便临时覆盖）
-    2. skill 目录下的 .env 文件里的 LLM_GATEWAY_API_KEY=xxx（兜底，免去每次 export）
+API key 与网关地址读取顺序（均：环境变量 > skill 目录 .env）:
+    1. LLM_GATEWAY_API_KEY —— LLM 网关密钥（必填）
+    2. LLM_GATEWAY_BASE_URL —— LLM 网关 base（OpenAI 兼容接口，必填），未配置则报错退出
     .env 已在 .gitignore 中，不会被提交。
 
 依赖:
@@ -29,7 +29,6 @@ import base64
 import os
 import sys
 
-BASE_URL = "http://llmapi.bilibili.co/v1"
 MODEL = "gpt-image-2"
 
 # 平台 -> 画幅尺寸。取最接近目标比例的档位：
@@ -59,6 +58,26 @@ def _load_api_key():
                     continue
                 name, _, value = line.partition("=")
                 if name.strip() == "LLM_GATEWAY_API_KEY":
+                    return value.strip().strip('"').strip("'")
+    except FileNotFoundError:
+        pass
+    return None
+
+
+def _load_base_url():
+    """按优先级读取网关 base：环境变量 > skill 目录下的 .env。未配置返回 None。"""
+    val = os.environ.get("LLM_GATEWAY_BASE_URL")
+    if val:
+        return val.strip()
+    env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")
+    try:
+        with open(env_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                name, _, value = line.partition("=")
+                if name.strip() == "LLM_GATEWAY_BASE_URL":
                     return value.strip().strip('"').strip("'")
     except FileNotFoundError:
         pass
@@ -112,8 +131,18 @@ def main():
         print("错误：未安装 openai 库。请运行:  pip install openai", file=sys.stderr)
         return 1
 
+    base_url = _load_base_url()
+    if not base_url:
+        print(
+            "错误：未找到 LLM_GATEWAY_BASE_URL。\n"
+            "请二选一：export LLM_GATEWAY_BASE_URL=你的LLM网关base，"
+            "或在 skill 目录下的 .env 里写入 LLM_GATEWAY_BASE_URL=你的LLM网关base。",
+            file=sys.stderr,
+        )
+        return 1
+
     size = resolve_size(args.platform, args.size)
-    client = openai.OpenAI(base_url=BASE_URL, api_key=api_key)
+    client = openai.OpenAI(base_url=base_url, api_key=api_key)
 
     ref = args.reference_image
     if ref:

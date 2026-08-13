@@ -1,6 +1,50 @@
 ---
 name: video-workflow-builder
 description: 视频创作工作流生成器。当用户想为自己的账号定制一套完整的视频创作流程（选题、文稿、标题、封面），或说"帮我做个账号工作流""定制视频流程""我想在抖音/B站/小红书/视频号/百家号做XX内容"时使用。它只问三件事（平台、垂类、人设），其余靠联网研究补齐，先给出账号定位诊断供确认，再生成一套可安装使用的专属工作流 skill。
+version: 0.1.1
+metadata:
+  openclaw:
+    primaryEnv: QIANFAN_WEBSEARCH_API_KEY
+    requires:
+      bins:
+        - python3
+    envVars:
+      - name: QIANFAN_WEBSEARCH_API_KEY
+        required: true
+        description: 千帆联网搜索网关密钥，阶段1联网研究（web_search.py）用。
+      - name: QIANFAN_WEBSEARCH_API_BASE
+        required: false
+        description: 千帆搜索网关地址，缺省用脚本内置默认值。
+      - name: LLM_GATEWAY_API_KEY
+        required: false
+        description: LLM 网关密钥，封面生成/文稿/口播稿纠错脚本用。
+      - name: LLM_GATEWAY_BASE_URL
+        required: false
+        description: LLM 网关 base（OpenAI 兼容接口），缺省用脚本内置默认值。
+      - name: ALIYUN_AK_ID
+        required: false
+        description: 阿里云 AccessKeyId，抖音口播稿 ASR（douyin_transcript.py）用。
+      - name: ALIYUN_AK_SECRET
+        required: false
+        description: 阿里云 AccessKeySecret，抖音口播稿 ASR 用。
+      - name: NLS_APP_KEY
+        required: false
+        description: 阿里云智能语音交互 AppKey。
+      - name: OSS_BUCKET
+        required: false
+        description: 阿里云 OSS 桶名，存放待 ASR 拉取的音频。
+      - name: OSS_ENDPOINT
+        required: false
+        description: 阿里云 OSS Endpoint。
+      - name: DAILYHOT_API_BASE
+        required: false
+        description: 自部署 DailyHotApi 实例地址，选题第零步抓实时热榜用。
+      - name: CONTENT_DB_ROOT
+        required: false
+        description: 内容存档数据库根目录，缺省用技能目录下默认路径。
+      - name: TIKTOK_DOWNLOADER_DIR
+        required: false
+        description: 外部 TikTokDownloader 本地目录绝对路径（GPL，单独 clone）。
 ---
 
 # 视频创作工作流生成器
